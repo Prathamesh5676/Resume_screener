@@ -82,16 +82,23 @@ celery -A app.workers.celery_app worker --loglevel=info --pool=solo
 
 ---
 ### 4. How to test on browser
+
+🎥 **Demo Video**
+
+<video src="Demo_Video.mp4" controls width="100%"></video>
+
 **1. Open Swagger UI:**
+
 http://localhost:8000/docs
 
-**2. Use dropdown /add_data endpoint**
-add a sample job description and upload a PDF resume file.
-then it generate evaluation_id.
+**2. Use dropdown `/upload` endpoint**
+Click on try it out.
+Add a sample job description and upload a PDF resume file, then it will generate an `evaluation_id`.
 
-**3. Use dropdown /result/{evaluation_id} endpoint**
-copy the generated evaluation_id and paste it in the GET endpoint to fetch the result.
-and you will see the evaluation result with score, verdict, missing requirements and justification in json format.
+**3. Use dropdown `/result/{evaluation_id}` endpoint**
+Click on try it out.
+Copy the generated `evaluation_id` and paste it in the GET endpoint to fetch the result.
+You will see the evaluation result with score, verdict, missing requirements and justification in JSON format.
 
 ### 4. Verify Services
 
