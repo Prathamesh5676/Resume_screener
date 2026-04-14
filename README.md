@@ -47,7 +47,7 @@ cd resume_screener
 
 ---
 
-### 2. Create `.env` file
+### 2. Create `.env` or check .env.example file
 
 ```env
 GROQ_API_KEY=your_api_key_here
@@ -57,11 +57,41 @@ GROQ_API_KEY=your_api_key_here
 
 ### 3. Build and Run Containers
 
+> Open **3 separate terminals** inside the `resume_screener` directory.
+
+**Terminal 1 — Start Redis (Docker)**
+
 ```bash
 docker-compose up --build
 ```
 
+> Wait until you see `Ready to accept connections` before opening the next terminals.
+
+**Terminal 2 — Start FastAPI Server**
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+**Terminal 3 — Start Celery Worker**
+
+```bash
+celery -A app.workers.celery_app worker --loglevel=info --pool=solo
+```
+
+
 ---
+### 4. How to test on browser
+**1. Open Swagger UI:**
+http://localhost:8000/docs
+
+**2. Use dropdown /add_data endpoint**
+add a sample job description and upload a PDF resume file.
+then it generate evaluation_id.
+
+**3. Use dropdown /result/{evaluation_id} endpoint**
+copy the generated evaluation_id and paste it in the GET endpoint to fetch the result.
+and you will see the evaluation result with score, verdict, missing requirements and justification in json format.
 
 ### 4. Verify Services
 
