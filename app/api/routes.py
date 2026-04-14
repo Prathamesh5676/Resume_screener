@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.evaluation import Evaluation
 
+
 router = APIRouter()
 
 class EvaluationResult(BaseModel):
@@ -20,13 +21,13 @@ class EvaluationResult(BaseModel):
 @router.post("/upload", status_code=status.HTTP_202_ACCEPTED)
 async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
     try:
-        # Read file content (do not process, just acknowledge)
-        await file.read()
+        # ✅ Read file content
+        file_bytes = await file.read()
         
         # Generate unique evaluation ID
         evaluation_id = str(uuid.uuid4())
         
-        # Create and save new evaluation record with pending status
+        # Save to DB
         evaluation = Evaluation(
             id=evaluation_id,
             status="pending",
@@ -39,7 +40,9 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         db.commit()
         db.refresh(evaluation)
 
-        # File is queued for asynchronous processing
+        # ✅ TRIGGER CELERY WORKER
+        process_resume.delay(evaluation_id, file_bytes)
+
         return {"evaluation_id": evaluation_id}
     
     except Exception as e:
