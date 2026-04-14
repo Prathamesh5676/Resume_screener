@@ -1,0 +1,1 @@
+# Tests package for Resume Screener integration tests

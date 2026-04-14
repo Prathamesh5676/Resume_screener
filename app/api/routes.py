@@ -1,7 +1,7 @@
 import uuid
-from typing import Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from typing import Optional
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -19,8 +19,12 @@ class EvaluationResult(BaseModel):
     missing_requirements: Optional[list[str]] = None
     justification: Optional[str] = None
 
-@router.post("/upload", status_code=status.HTTP_202_ACCEPTED)
-async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
+@router.post("/add_data", status_code=status.HTTP_202_ACCEPTED)
+async def add_data(
+    resume: UploadFile = File(..., alias="Upload Resume", description="Upload your resume in PDF format"),
+    job_description: str = Form(..., alias="Add Job Description", description="Paste the job description here (required)"),
+    db: Session = Depends(get_db),
+):
     evaluation_id = str(uuid.uuid4())
 
     try:
@@ -38,10 +42,10 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         db.refresh(evaluation)
 
         # Read file content after the record is persisted
-        file_bytes = await file.read()
-        print("🔥 Upload endpoint hit")
-        print("📤 Sending task:", evaluation_id)
-        process_resume.delay(evaluation_id, file_bytes)
+        file_bytes = await resume.read()
+        print("Upload endpoint hit")
+        print("Sending task:", evaluation_id)
+        process_resume.delay(evaluation_id, file_bytes, job_description)
 
         return {"evaluation_id": evaluation_id}
 
@@ -68,5 +72,3 @@ async def get_evaluation_result(evaluation_id: str, db: Session = Depends(get_db
         justification=evaluation.justification,
     )
 
-# Add dependency to get DB session using FastAPI Depends
-# Create get_db() function if not exists

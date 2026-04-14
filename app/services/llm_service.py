@@ -1,13 +1,13 @@
 import json
 import logging
 import os
+import time
 from pathlib import Path
 
 from groq import Groq, APIConnectionError, APIStatusError, RateLimitError
 from dotenv import load_dotenv
 
 load_dotenv()
-print(os.getenv("GROQ_API_KEY"))
 logger = logging.getLogger(__name__)
 
 PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "prompt.md"
@@ -20,9 +20,12 @@ REQUIRED_FIELDS = {"score", "verdict", "missing_requirements", "justification"}
 def load_prompt() -> str:
     """Read and return the prompt template from prompt.md."""
     try:
-        return PROMPT_PATH.read_text(encoding="utf-8")
+        print(f"Loading prompt from: {PROMPT_PATH.absolute()}")
+        content = PROMPT_PATH.read_text(encoding="utf-8")
+        print(f"Prompt loaded successfully. Length: {len(content)} chars")
+        return content
     except FileNotFoundError:
-        raise FileNotFoundError(f"Prompt file not found at: {PROMPT_PATH}")
+        raise FileNotFoundError(f"Prompt file not found at: {PROMPT_PATH.absolute()}")
     except OSError as e:
         raise OSError(f"Failed to read prompt file: {e}") from e
 
@@ -37,6 +40,7 @@ def build_prompt(jd_text: str, resume_text: str) -> str:
     template = load_prompt()
     prompt = template.replace("{{JD_TEXT}}", jd_text.strip())
     prompt = prompt.replace("{{RESUME_TEXT}}", resume_text.strip())
+
     return prompt
 
 
@@ -129,14 +133,22 @@ def evaluate_resume(jd_text: str, resume_text: str) -> dict:
             )
             continue
 
-        except (RateLimitError, APIConnectionError, APIStatusError) as e:
+        except (RateLimitError, APIConnectionError, APIStatusError, Exception) as e:
+            error_msg = str(e)
             last_error = e
-            logger.error(
-                "Attempt %d/%d — Groq API error, aborting retries: %s",
-                attempt,
-                MAX_RETRIES,
-                e,
-            )
+
+            if "429" in error_msg or "rate" in error_msg.lower():
+                wait_time = 2 ** attempt
+                logger.warning(f"Rate limit hit. Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+
+            if "connection" in error_msg.lower():
+                logger.warning("Connection error. Retrying in 2s...")
+                time.sleep(2)
+                continue
+
+            logger.error("LLM failed: %s", error_msg)
             raise
 
     raise ValueError(

@@ -1,1 +1,44 @@
+# Environment
 .env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# SQLite database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+celerybeat-schedule
+celerybeat.pid
+
+# Docker
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from app.workers.celery_app import celery
 from app.services.pdf_service import extract_text
 from app.services.llm_service import evaluate_resume
@@ -7,18 +9,28 @@ import json
 
 
 @celery.task
-def process_resume(evaluation_id: str, file_bytes: bytes):
-    print("🔥 TASK STARTED:", evaluation_id)
+def process_resume(evaluation_id: str, file_bytes: bytes, jd_text: Optional[str] = None):
+    print("TASK STARTED:", evaluation_id)
 
     db = SessionLocal()
 
     try:
-        print("📄 Extracting text...")
-        resume_text = extract_text(file_bytes)
-        print("📄 Extracted length:", len(resume_text))
-        print("📄 FIRST 200 CHARS:", resume_text[:200]) 
+        print("Extracting text...")
 
-        jd_text = jd_text = """
+        resume_text = extract_text(file_bytes)
+        print("Extracted length:", len(resume_text))
+
+        # Check if text extraction worked
+        if not resume_text or len(resume_text.strip()) < 10:
+            print("ERROR: Resume text extraction failed or too short!")
+            raise ValueError("Resume text extraction failed")
+
+        # Check for common resume keywords to verify extraction
+        resume_keywords = ['experience', 'education', 'skills', 'project', 'work', 'python', 'java', 'javascript']
+        _ = [kw for kw in resume_keywords if kw.lower() in resume_text.lower()]
+
+        if not jd_text or not jd_text.strip():
+            jd_text = """
             We are hiring a Backend Engineer.
 
             Mandatory:
@@ -37,14 +49,14 @@ def process_resume(evaluation_id: str, file_bytes: bytes):
             Reject candidates without backend experience.
             """
 
-        print("🤖 Calling LLM...")
+        print("Calling LLM with jd_text and resume_text...")
         result = evaluate_resume(jd_text, resume_text)
-        print("✅ LLM RESULT:", result)
+        print("LLM RESULT:", result)
 
         evaluation = db.query(Evaluation).filter(Evaluation.id == evaluation_id).first()
 
         if evaluation:
-            print("💾 Updating DB...")
+            print("Updating DB...")
 
             evaluation.score = result["score"]
             evaluation.verdict = result["verdict"]
@@ -54,10 +66,16 @@ def process_resume(evaluation_id: str, file_bytes: bytes):
 
             db.commit()
 
-            print("🎉 DONE")
+            print("DONE")
 
     except Exception as e:
-        print("❌ WORKER ERROR:", e)
+        print("WORKER ERROR:", str(e))
+
+        evaluation = db.query(Evaluation).filter(Evaluation.id == evaluation_id).first()
+        if evaluation:
+            evaluation.status = "failed"
+            evaluation.justification = str(e)
+            db.commit()
 
     finally:
         db.close()
