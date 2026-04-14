@@ -95,6 +95,32 @@ http://localhost:8000/docs
 Click on try it out.
 Add a sample job description and upload a PDF resume file, then it will generate an `evaluation_id`.
 
+---
+
+## 💼 Sample Job Descriptions
+
+Use any of the following as the `job_description` field when uploading a resume:
+
+---
+
+### 🔹 Backend Developer
+
+We are hiring a backend developer. Candidates must have strong experience in Python, hands-on knowledge of FastAPI or Django, and at least 3 years of backend development experience. Familiarity with PostgreSQL, Docker, AWS services like EC2 and S3, and REST API design is required. Experience with Redis, Kubernetes, and CI/CD pipelines is preferred.
+
+---
+
+### 🔹 Frontend Developer
+
+We are looking for a frontend developer. Applicants should have solid experience with HTML, CSS, and JavaScript, along with at least 2 years of experience using React. Understanding of responsive design and API integration is required. Experience with TypeScript, Next.js, and modern UI frameworks is a plus.
+
+---
+
+### 🔹 Data Analyst
+
+We are hiring a data analyst. Candidates must have strong skills in SQL, data visualization tools like Power BI or Tableau, and experience working with large datasets. Knowledge of Python libraries such as Pandas and NumPy is required. Experience with machine learning and statistical modeling is preferred.
+
+---
+
 **3. Use dropdown `/result/{evaluation_id}` endpoint**
 Click on try it out.
 Copy the generated `evaluation_id` and paste it in the GET endpoint to fetch the result.
@@ -193,31 +219,7 @@ http://localhost:8000/docs
 3. Copy `evaluation_id`
 4. Fetch result
 
----
 
-## 💼 Sample Job Descriptions
-
-Use any of the following as the `job_description` field when uploading a resume:
-
----
-
-### 🔹 Backend Developer
-
-We are hiring a backend developer. Candidates must have strong experience in Python, hands-on knowledge of FastAPI or Django, and at least 3 years of backend development experience. Familiarity with PostgreSQL, Docker, AWS services like EC2 and S3, and REST API design is required. Experience with Redis, Kubernetes, and CI/CD pipelines is preferred.
-
----
-
-### 🔹 Frontend Developer
-
-We are looking for a frontend developer. Applicants should have solid experience with HTML, CSS, and JavaScript, along with at least 2 years of experience using React. Understanding of responsive design and API integration is required. Experience with TypeScript, Next.js, and modern UI frameworks is a plus.
-
----
-
-### 🔹 Data Analyst
-
-We are hiring a data analyst. Candidates must have strong skills in SQL, data visualization tools like Power BI or Tableau, and experience working with large datasets. Knowledge of Python libraries such as Pandas and NumPy is required. Experience with machine learning and statistical modeling is preferred.
-
----
 
 ## 🛡 Resilience & Reliability
 
