@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.models.evaluation import Evaluation
+from app.workers.tasks import process_resume
 
 
 router = APIRouter()
@@ -15,19 +16,15 @@ class EvaluationResult(BaseModel):
     status: str
     score: Optional[int] = None
     verdict: Optional[str] = None
-    missing_requirements: Optional[str] = None
+    missing_requirements: Optional[list[str]] = None
     justification: Optional[str] = None
 
 @router.post("/upload", status_code=status.HTTP_202_ACCEPTED)
 async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    evaluation_id = str(uuid.uuid4())
+
     try:
-        # ✅ Read file content
-        file_bytes = await file.read()
-        
-        # Generate unique evaluation ID
-        evaluation_id = str(uuid.uuid4())
-        
-        # Save to DB
+        # Save evaluation record as pending before dispatching worker
         evaluation = Evaluation(
             id=evaluation_id,
             status="pending",
@@ -40,16 +37,19 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         db.commit()
         db.refresh(evaluation)
 
-        # ✅ TRIGGER CELERY WORKER
+        # Read file content after the record is persisted
+        file_bytes = await file.read()
+        print("🔥 Upload endpoint hit")
+        print("📤 Sending task:", evaluation_id)
         process_resume.delay(evaluation_id, file_bytes)
 
         return {"evaluation_id": evaluation_id}
-    
+
     except Exception as e:
         db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to process upload: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to enqueue resume processing: {str(e)}",
         )
 
 @router.get("/result/{evaluation_id}", response_model=EvaluationResult)

@@ -11,7 +11,7 @@ print(os.getenv("GROQ_API_KEY"))
 logger = logging.getLogger(__name__)
 
 PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "prompt.md"
-MODEL = "llama3-70b-8192"
+MODEL = "llama-3.1-8b-instant"
 TEMPERATURE = 0
 MAX_RETRIES = 3
 REQUIRED_FIELDS = {"score", "verdict", "missing_requirements", "justification"}

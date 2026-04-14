@@ -5,4 +5,5 @@ uvicorn
 groq
 python-dotenv
 celery
-redis  
+redis
+PyMuPDF
