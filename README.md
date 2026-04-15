@@ -17,7 +17,7 @@ This system is designed as an **asynchronous resume evaluation pipeline** using 
 
 ### 🔄 System Flow
 
-1. Client uploads resume via `/upload`
+1. Client uploads resume via `/upload` + add job description.
 2. FastAPI:
    * Stores evaluation record (status = pending)
    * Sends task to Celery
@@ -68,7 +68,21 @@ docker-compose up --build
 > Wait until you see `Ready to accept connections` before opening the next terminals.
 
 **Terminal 2 — Start FastAPI Server**
+First create an virtual env using following command 
+```bash
+python -m venv myenv
+```
+and then activate the env 
+✅ On Windows (powershell)
+```bash
 
+myenv\Scripts\activate
+```
+✅ On Windows (Command Prompt)
+```bash
+myenv\Scripts\Activate.ps1
+```
+Then run app using following command
 ```bash
 python -m uvicorn app.main:app --reload
 ```
